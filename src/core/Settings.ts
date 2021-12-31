@@ -6,6 +6,6 @@ export interface Settings {
 export function defaultSettings(): Settings {
   return {
     running: true,
-    bgColor: 0x223322,
+    bgColor: 0xEFE5D8,
   }
 }

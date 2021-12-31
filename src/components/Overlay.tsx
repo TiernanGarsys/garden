@@ -17,17 +17,14 @@ function Overlay(props: OverlayProps) {
     e.stopPropagation();
   }, [props]);
 
-  console.log("Overlay");
-  console.log(props);
-
   return (
     <div className={classNames("Overlay", {
       enabled: props.enabled,
     })}>
-      HELLO THERE
       <button className="dismiss" onClick={onClickDismiss}>
         DISMISS
       </button>
+      <div>HELLO</div>
     </div>
   );
 }
