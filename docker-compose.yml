@@ -1,7 +1,0 @@
-version: "1.0"
-services:
-  web:
-    image: "tgarsys/garden:latest"
-    build: .
-    ports:
-      - "3000:3000"
