@@ -1,7 +1,16 @@
+@font-face {
+  font-family: "redHat";
+  src: url("fonts/redhat.ttf");
+}
 
 @font-face {
-  font-family: "messageFont";
+  font-family: "spaceMono";
   src: url("fonts/spacemono.ttf");
+}
+
+@font-face {
+  font-family: "vietnam";
+  src: url("fonts/vietnam.ttf");
 }
 
 body {

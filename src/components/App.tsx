@@ -47,9 +47,7 @@ function App() {
 
   return (
     <div className="App">
-      {!state.showOverlay && 
-        <div className="message">Press key for settings</div>
-      }
+      <div className="message">Press key for settings</div>
       {state.showOverlay && 
         <Overlay 
           settings={state.settings}
