@@ -1,8 +1,9 @@
-import React from "react";
+import { useCallback, useEffect, useState} from "react";
 
 import Display from './Display'
 import Overlay from './Overlay'
 import { Settings, defaultSettings } from '../core/Settings'
+import './App.css'
 
 interface AppState {
   showOverlay: boolean,
@@ -10,39 +11,51 @@ interface AppState {
 }
 
 function App() {
-  const [state, setState] = React.useState<AppState>({ 
+  const [state, setState] = useState<AppState>({ 
     showOverlay: false,
     settings: defaultSettings(),
-  })
+  });
 
-  let overlayUpdate = React.useCallback((settings: Settings) => {
+  let onKeyDown = useCallback(() => {
+    setState({ 
+      settings: state.settings,
+      showOverlay: true,
+    });
+  }, [state]);
+
+  useEffect(() => {  
+    window.addEventListener("keydown", onKeyDown, true);  
+    return () => window.removeEventListener("keydown", onKeyDown, true);
+  }, [onKeyDown]);
+
+  let onClick = useCallback(() => {
+  }, [state, setState]);
+
+  let overlayUpdate = useCallback((settings: Settings) => {
     setState({ 
       settings: settings,
       showOverlay: state.showOverlay,
     });
-  }, [state, setState])
+  }, [state, setState]);
 
-  let overlayDismiss = React.useCallback(() => {
+  let overlayDismiss = useCallback(() => {
     setState({ 
       settings: state.settings,
       showOverlay: false
     });
-  }, [state, setState])
-
-  let onClick = React.useCallback(() => {
-    setState({ 
-      settings: state.settings,
-      showOverlay: true
-    });
-  }, [state, setState])
+  }, [state, setState]);
 
   return (
-    <div onClick={onClick}>
-      <Overlay 
-        enabled={state.showOverlay} 
-        update={overlayUpdate}
-        dismiss={overlayDismiss}
-      />
+    <div className="App">
+      {!state.showOverlay && 
+        <div className="message">Press key for settings</div>
+      }
+      {state.showOverlay && 
+        <Overlay 
+          settings={state.settings}
+          update={overlayUpdate}
+          dismiss={overlayDismiss}/>
+      }
       <Display bgColor={state.settings.bgColor}/>
     </div>
   );
