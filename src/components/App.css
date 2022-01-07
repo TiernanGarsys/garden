@@ -1,5 +1,5 @@
 .App .message {
-  animation-duration: 5s;
+  animation-duration: 10s;
   animation-name: fade;
   font-family: "vietnam", "Courier New", "monospace";
   opacity: 0%;
