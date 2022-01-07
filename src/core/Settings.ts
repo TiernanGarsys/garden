@@ -1,11 +1,13 @@
+
+import { Palette, getPalette } from './Color';
 export interface Settings {
   running: boolean,
-  bgColor: number,
+  palette: Palette,
 }
 
 export function defaultSettings(): Settings {
   return {
     running: true,
-    bgColor: 0xEFE5D8,
+    palette: getPalette(),
   }
 }

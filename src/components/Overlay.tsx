@@ -3,7 +3,7 @@ import React, { MouseEvent } from "react";
 
 import './Overlay.css';
 import { Settings } from '../core/Settings';
-
+import { getPalette } from '../core/Color';
 interface OverlayProps {
   settings: Settings,
   dismiss: (() => void),
@@ -23,19 +23,10 @@ function Overlay(props: OverlayProps) {
     e.stopPropagation();
   }, [props]);
 
-  let onClickUpdate = React.useCallback((e: MouseEvent) => {
-    props.update(state.settings)
-    e.stopPropagation();
-  }, [props, state]);
-
   let onClickNewColorScheme = React.useCallback((e: MouseEvent) => {
-    var scheme = new ColorScheme();
-    scheme.from_hue(21)         
-          .scheme('triade')   
-          .variation('soft');
     setState({...state, ...{
       settings: {...state.settings, ... {
-        bgColor: scheme.colors[0],
+        palette: getPalette(),
       }},
     }});
     e.stopPropagation();
@@ -46,11 +37,6 @@ function Overlay(props: OverlayProps) {
       <div className="row">
         <button className="dismiss" onClick={onClickDismiss}>
           DISMISS
-        </button>
-      </div>
-      <div className="row">
-        <button className="update" onClick={onClickUpdate}>
-          UPDATE
         </button>
       </div>
     </div>

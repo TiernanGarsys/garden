@@ -1,8 +1,9 @@
 .App .message {
   animation-duration: 10s;
   animation-name: fade;
+  color: #CCCCCC;
   font-family: "vietnam", "Courier New", "monospace";
-  opacity: 0%;
+  opacity: 10%;
   position: absolute;
   top: 16px;
   left: 16px;
@@ -14,6 +15,6 @@
   }
 
   to {
-    opacity: 0%;
+    opacity: 10%;
   }
 }

@@ -29,6 +29,7 @@ function App() {
   }, [onKeyDown]);
 
   let onClick = useCallback(() => {
+    console.log("TODO: Add click behavior");
   }, [state, setState]);
 
   let overlayUpdate = useCallback((settings: Settings) => {
@@ -45,8 +46,9 @@ function App() {
     });
   }, [state, setState]);
 
+
   return (
-    <div className="App">
+    <div className="App" onClick={onClick}>
       <div className="message">Press key for settings</div>
       {state.showOverlay && 
         <Overlay 
@@ -54,7 +56,7 @@ function App() {
           update={overlayUpdate}
           dismiss={overlayDismiss}/>
       }
-      <Display bgColor={state.settings.bgColor}/>
+      <Display palette={state.settings.palette}/>
     </div>
   );
 }

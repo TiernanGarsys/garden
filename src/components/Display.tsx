@@ -1,8 +1,10 @@
 import React, { useRef, useEffect } from "react";
 import { Application, Graphics } from "pixi.js";
 
+import { Palette, getPalette } from '../core/Color';
+
 interface DisplayProps {
-  bgColor: number,
+  palette: Palette,
 }
 
 function Display(props: DisplayProps) {
@@ -11,7 +13,7 @@ function Display(props: DisplayProps) {
   useEffect(() => {
     const app = new Application({
       resizeTo: window,
-      backgroundColor: props.bgColor,
+      backgroundColor: props.palette.background,
     });
 
     let frame = new Graphics();
@@ -34,7 +36,7 @@ function Display(props: DisplayProps) {
     return () => {
       app.destroy(true, true);
     };
-  }, [props.bgColor]);
+  }, [props.palette]);
  
   return <div ref={ref} />;
 }

@@ -1,6 +1,7 @@
 .Overlay {
-  position: absolute;
+  color: #CCCCCC;
   display: block; 
+  font-family: "vietnam", "Courier New", "monospace";
   width: 100%; 
   height: 100%; 
   top: 0; 
@@ -8,18 +9,20 @@
   right: 0;
   bottom: 0;
   padding: 12px;
+  position: absolute;
   background-color: rgba(0,0,0,0.5); 
   z-index: 2; 
   cursor: pointer;
 }
 
 .Overlay .row {
-  display: inline-block; 
+  display: block; 
 }
 
 .Overlay button {
-  background-color: #BBBBBB; 
+  background-color: #222222; 
   border: none;
+  border-radius: 4px;
   color: white;
   padding: 15px 32px;
   text-align: center;
