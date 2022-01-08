@@ -5,6 +5,15 @@ export type EdgeId = string;
 export type NodeId = string;
 export type Point = [number, number];
 
+export interface SimUpdate {
+  addedAgents: AgentId[],
+  addedNodes: NodeId[],
+  addedEdges: EdgeId[],
+  removedAgents: AgentId[],  
+  removedNodes: NodeId[],  
+  removedEdges: EdgeId[],
+}
+
 interface Agent {
   id: AgentId,
   position: Point,
@@ -25,15 +34,6 @@ interface Edge {
   dest: NodeId,
 }
 
-interface SimUpdate {
-  addedAgents: AgentId[],
-  addedNodes: NodeId[],
-  addedEdges: EdgeId[],
-  removedAgents: AgentId[],  
-  removedNodes: NodeId[],  
-  removedEdges: EdgeId[],
-}
-
 class Sim {
   settings: Settings;
   agents: Agent[]; 
@@ -45,8 +45,6 @@ class Sim {
     this.agents = [];
     this.nodes = [];
     this.edges = [];
-
-    this.initTest();
   }
 
   initTest() {
@@ -70,6 +68,15 @@ class Sim {
       src: "N2",
       dest: "N1",
     });
+
+    return {
+      addedAgents: [],
+      addedNodes: ["N1", "N2"],
+      addedEdges: ["E1", "E2"],
+      removedAgents: [],
+      removedNodes: [],
+      removedEdges: [],
+    };
   }
 
   setSettings(settings: Settings) {

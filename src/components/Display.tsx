@@ -3,22 +3,25 @@ import { Application, Graphics } from "pixi.js";
 
 import { Palette } from '../core/Color';
 import { Settings } from '../core/Settings';
-import Sim, { AgentId, NodeId, EdgeId } from "../core/Sim";
+import Sim, { AgentId, NodeId, EdgeId, SimUpdate } from "../core/Sim";
 
 interface DisplayProps {
   settings: Settings,
 }
 
 interface AgentFrame {
-
+  id: AgentId,
+  frame: Graphics,
 }
 
 interface NodeFrame {
-
+  id: NodeId,
+  frame: Graphics,
 }
 
 interface EdgeFrame {
-
+  id: EdgeId,
+  frame: Graphics,
 }
 
 interface DisplayState {
@@ -51,11 +54,37 @@ function Display(props: DisplayProps) {
     frame.position.set(320 - 100, 180 - 100);
     app.stage.addChild(frame);
 
-    // Add a ticker callback to move the sprite back and forth
-    let elapsed = 0.0;
+    const processSimUpdate= (update: SimUpdate) => {
+      for (let id in update.addedAgents) {
+
+      }
+      for (let id in update.addedNodes) {
+
+      }
+      for (let id in update.addedEdges) {
+
+      }
+      for (let id in update.removedAgents) {
+
+      }
+      for (let id in update.removedNodes) {
+
+      }
+      for (let id in update.removedEdges) {
+
+      }
+    }
+
+    let initialTick = true;
     app.ticker.add((delta) => {
-      state.sim.tick(delta);
+      let update: SimUpdate;
+      if (initialTick) {
+        update = state.sim.initTest();
+      } else {
+        update = state.sim.tick(delta);
+      }
     });
+
 
     ref.current!.appendChild(app.view);
     app.start();
