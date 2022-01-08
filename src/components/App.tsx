@@ -4,30 +4,30 @@ import classNames from "classnames";
 import Display from './Display'
 import Overlay from './Overlay'
 import { Settings, defaultSettings } from '../core/Settings'
+import Sim from '../core/Sim'
 import './App.css'
 
 const MESSAGE_FADE_TIMEOUT_MS: number = 3 * 1000;
 
 interface AppState {
-  settings: Settings
+  settings: Settings,
+  sim: Sim,
   showMessage: boolean,
   showOverlay: boolean,
 }
 
 function App() {
+  const defaults = defaultSettings();
   const [state, setState] = useState<AppState>({ 
-    settings: defaultSettings(),
+    settings: defaults,
+    sim: new Sim(defaults),
     showMessage: true,
     showOverlay: false,
   });
 
   let onKeyDown = useCallback(() => {
-    setState({ 
-      settings: state.settings,
-      showMessage: state.showMessage,
-      showOverlay: true,
-    });
-  }, [state]);
+    setState({...state, ...{showOverlay: true}});
+  }, [state, setState]);
 
   useEffect(() => {  
     window.addEventListener("keydown", onKeyDown, true);  
@@ -57,21 +57,18 @@ function App() {
   }, [state, setState]);
 
   let overlayUpdate = useCallback((settings: Settings) => {
-    setState({ 
-      settings: settings,
-      showMessage: state.showMessage,
-      showOverlay: state.showOverlay,
-    });
+    setState({...state, ...{settings: settings}});
+    state.sim.setSettings(settings);
   }, [state, setState]);
 
   let overlayDismiss = useCallback(() => {
-    setState({ 
-      settings: state.settings,
-      showMessage: true,
-      showOverlay: false
-    });
+    setState({...state, ...{showMessage: true, showOverlay: false}});
   }, [state, setState]);
 
+  useEffect(() => {  
+    window.addEventListener("keydown", onKeyDown, true);  
+    return () => window.removeEventListener("keydown", onKeyDown, true);
+  }, [onKeyDown]);
 
   return (
     <div className="App" 
