@@ -1,20 +1,22 @@
 .App .message {
-  animation-duration: 10s;
-  animation-name: fade;
   color: #CCCCCC;
   font-family: "vietnam", "Courier New", "monospace";
-  opacity: 10%;
   position: absolute;
   top: 16px;
   left: 16px;
 }
 
-@keyframes fade {
+.App .message.fadeout {
+  animation-duration: 2s;
+  animation-name: fadeout;
+}
+
+@keyframes fadeout {
   from {
     opacity: 100%;
   }
 
   to {
-    opacity: 10%;
+    opacity: 0%;
   }
 }

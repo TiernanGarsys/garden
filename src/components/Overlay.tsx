@@ -1,4 +1,3 @@
-import { ColorScheme } from "color-scheme";
 import React, { MouseEvent } from "react";
 
 import './Overlay.css';
@@ -22,15 +21,6 @@ function Overlay(props: OverlayProps) {
     props.dismiss();
     e.stopPropagation();
   }, [props]);
-
-  let onClickNewColorScheme = React.useCallback((e: MouseEvent) => {
-    setState({...state, ...{
-      settings: {...state.settings, ... {
-        palette: getPalette(),
-      }},
-    }});
-    e.stopPropagation();
-  }, [props, state, setState]);
 
   return (
     <div className="Overlay">
