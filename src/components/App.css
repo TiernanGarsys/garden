@@ -1,14 +1,11 @@
 .App .message {
+  animation-duration: 10s;
+  animation-name: fadeout;
   color: #CCCCCC;
   font-family: "vietnam", "Courier New", "monospace";
   position: absolute;
   top: 16px;
-  left: 16pxl;
-}
-
-.App .message.fadeout {
-  animation-duration: 2s;
-  animation-name: fadeout;
+  left: 16px;
 }
 
 @keyframes fadeout {
