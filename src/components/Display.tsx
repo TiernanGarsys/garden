@@ -26,18 +26,16 @@ interface EdgeFrame {
 
 interface DisplayState {
   sim: Sim,
-  agents: Map<AgentId, AgentFrame>,
-  nodes: Map<NodeId, NodeFrame>,
-  edges: Map<EdgeId, EdgeFrame>,
 }
 
 function Display(props: DisplayProps) {
   const [state, _] = useState<DisplayState>({ 
     sim: new Sim(props.settings),
-    agents: new Map<AgentId, AgentFrame>(),
-    nodes: new Map<NodeId, NodeFrame>(),
-    edges: new Map<EdgeId, EdgeFrame>(),
   });
+
+  let agents = new Map<AgentId, AgentFrame>();
+  let nodes = new Map<NodeId, NodeFrame>();
+  let edges = new Map<EdgeId, EdgeFrame>();
 
   const ref = useRef<HTMLDivElement>(null);
 
@@ -56,22 +54,32 @@ function Display(props: DisplayProps) {
 
     const processSimUpdate= (update: SimUpdate) => {
       for (let id in update.addedAgents) {
-
+        agents.set(id, {
+          id: id,
+          frame: new Graphics(),
+        });
       }
       for (let id in update.addedNodes) {
+        nodes.set(id, {
+          id: id,
+          frame: new Graphics(),
 
+        });
       }
       for (let id in update.addedEdges) {
-
+        edges.set(id, {
+          id: id,
+          frame: new Graphics(),
+        });
       }
       for (let id in update.removedAgents) {
-
+        agents.delete(id);
       }
       for (let id in update.removedNodes) {
-
+        nodes.delete(id);
       }
       for (let id in update.removedEdges) {
-
+        edges.delete(id);
       }
     }
 
@@ -83,6 +91,8 @@ function Display(props: DisplayProps) {
       } else {
         update = state.sim.tick(delta);
       }
+
+      processSimUpdate(update);
     });
 
 
