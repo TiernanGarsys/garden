@@ -5,7 +5,7 @@ export type AgentId = string;
 export type EdgeId = string;
 export type NodeId = string;
 export type Point = [number, number];
-export type Segment = [Point, Point];
+export type Segment = [Node, Node];
 
 export interface SimUpdate {
   addedAgents: AgentId[],
@@ -37,6 +37,10 @@ interface Edge {
 }
 
 class Sim {
+  // TODO(tiernan): Configure these via settings.
+  MAX_NODES = 100;
+  MAX_AGENTS = 100;
+
   settings: Settings;
   agents: Map<AgentId, Agent>;
   nodes: Map<NodeId, Node>;
@@ -92,30 +96,28 @@ class Sim {
     this.settings = settings;
   }
 
-  getAgentPosition(id: AgentId): Point { 
+  getAgent(id: AgentId): Agent { 
     const agent = this.agents.get(id);
     if (agent) {
-      return agent.position;
+      return agent;
     } else {
       throw new Error(`No agent with ID: ${ id }`)
     }
   }
 
-  getNodePosition(id: NodeId): Point { 
+  getNode(id: NodeId): Node { 
     const node = this.nodes.get(id);
     if (node) {
-      return node.position;
+      return node;
     } else {
       throw new Error(`No node with ID: ${ id }`)
     }
   }
 
-  getEdgePosition(id: EdgeId): Segment { 
+  getEdge(id: EdgeId): Edge { 
     const edge = this.edges.get(id);
     if (edge) {
-      const p1 = this.getNodePosition(edge.src);
-      const p2 = this.getNodePosition(edge.dst);
-      return [p1, p2];
+      return edge;
     } else {
       throw new Error(`No edge with ID: ${ id }`)
     }

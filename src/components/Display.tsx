@@ -60,7 +60,7 @@ function Display(props: DisplayProps) {
           ctx: new Graphics(),
         };
         agents.set(id, frame);
-        frame.ctx.lineStyle({ color: 0x0000ff, width: 2, alignment: 0 });
+        frame.ctx.lineStyle({ color: 0xAA0000, width: 2, alignment: 0 });
         agentLayer.addChild(frame.ctx);
       }
       for (let id of update.addedEdges) {
@@ -69,7 +69,7 @@ function Display(props: DisplayProps) {
           ctx: new Graphics(),
         };
         edges.set(id, frame);
-        frame.ctx.lineStyle({ color: 0x00ff00, width: 1, alignment: 0 });
+        frame.ctx.lineStyle({ color: 0xFFFFFF, width: 0.5, alignment: 0 });
         edgeLayer.addChild(frame.ctx);
       }
       for (let id of update.addedNodes) {
@@ -78,7 +78,7 @@ function Display(props: DisplayProps) {
           ctx: new Graphics(),
         };
         nodes.set(id, frame);
-        frame.ctx.lineStyle({ color: 0xff0000, width: 1, alignment: 0 });
+        frame.ctx.lineStyle({ color: 0x888888, width: 1, alignment: 0 });
         nodeLayer.addChild(frame.ctx);
       }
       for (let id in update.removedAgents) {
@@ -109,24 +109,26 @@ function Display(props: DisplayProps) {
       const width = window.innerWidth;
 
       edges.forEach((frame, id) => {
-        const seg = state.sim.getEdgePosition(id);
+        const edge = state.sim.getEdge(id);
+        const n1 = state.sim.getNode(edge.src);
+        const n2 = state.sim.getNode(edge.dst);
 
-        const ax = seg[0][0] * width;
-        const ay = seg[0][1] * height;
-        const bx = seg[1][0] * width - ax;
-        const by = seg[1][1] * height - ay;
+        const ax = n1.position[0] * width;
+        const ay = n1.position[1] * height;
+        const bx = n2.position[0] * width - ax;
+        const by = n2.position[1] * height - ay;
 
         frame.ctx.position.set(ax, ay);
         frame.ctx.lineTo(bx, by);
       });
       nodes.forEach((frame, id) => {
-        const pos = state.sim.getNodePosition(id);
-        frame.ctx.position.set(pos[0] * width, pos[1] * height);
+        const node = state.sim.getNode(id);
+        frame.ctx.position.set(node.position[0] * width, node.position[1] * height);
         frame.ctx.drawCircle(0, 0, 5);
       });
       agents.forEach((frame, id) => {
-        const pos = state.sim.getAgentPosition(id);
-        frame.ctx.position.set(pos[0] * width, pos[1] * height);
+        const agent = state.sim.getAgent(id);
+        frame.ctx.position.set(agent.position[0] * width, agent.position[1] * height);
         frame.ctx.drawCircle(0, 0, 5);
       });
     }
