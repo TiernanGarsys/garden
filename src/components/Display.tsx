@@ -11,17 +11,17 @@ interface DisplayProps {
 
 interface AgentFrame {
   id: AgentId,
-  gfx: Graphics,
+  ctx: Graphics,
 }
 
 interface NodeFrame {
   id: NodeId,
-  gfx: Graphics,
+  ctx: Graphics,
 }
 
 interface EdgeFrame {
   id: EdgeId,
-  gfx: Graphics,
+  ctx: Graphics,
 }
 
 interface DisplayState {
@@ -33,9 +33,9 @@ function Display(props: DisplayProps) {
     sim: new Sim(props.settings),
   });
 
-  let agents = new Map<AgentId, AgentFrame>();
-  let nodes = new Map<NodeId, NodeFrame>();
-  let edges = new Map<EdgeId, EdgeFrame>();
+  const agents = new Map<AgentId, AgentFrame>();
+  const nodes = new Map<NodeId, NodeFrame>();
+  const edges = new Map<EdgeId, EdgeFrame>();
 
   const ref = useRef<HTMLDivElement>(null);
 
@@ -45,45 +45,33 @@ function Display(props: DisplayProps) {
       backgroundColor: props.settings.palette.background,
     });
 
-    let frame = new Graphics();
-    frame.beginFill(0x666666);
-    frame.lineStyle({ color: 0xffffff, width: 4, alignment: 0 });
-    frame.drawRect(0, 0, 208, 208);
-    frame.position.set(320 - 100, 180 - 100);
-    app.stage.addChild(frame);
-
     const processSimUpdate= (update: SimUpdate) => {
-      console.log(`processing update { update }`);
-      for (let id of update.addedAgents) {
+      for (let id of update.addedEdges) {
         let frame = {
           id: id,
-          gfx: new Graphics(),
+          ctx: new Graphics(),
         };
-        frame.gfx.beginFill(props.settings.palette.agent[0]);
-        frame.gfx.position.set(-100, -100);
-        agents.set(id, frame);
-        app.stage.addChild(frame.gfx);
+        edges.set(id, frame);
+        frame.ctx.lineStyle({ color: 0x00ff00, width: 2, alignment: 0 });
+        app.stage.addChild(frame.ctx);
       }
       for (let id of update.addedNodes) {
         let frame = {
           id: id,
-          gfx: new Graphics(),
+          ctx: new Graphics(),
         };
-        frame.gfx.beginFill(props.settings.palette.node);
-        frame.gfx.position.set(-100, -100);
         nodes.set(id, frame);
-        app.stage.addChild(frame.gfx);
+        frame.ctx.lineStyle({ color: 0xff0000, width: 2, alignment: 0 });
+        app.stage.addChild(frame.ctx);
       }
-      for (let id of update.addedEdges) {
+      for (let id of update.addedAgents) {
         let frame = {
           id: id,
-          gfx: new Graphics(),
+          ctx: new Graphics(),
         };
-        frame.gfx.beginFill(props.settings.palette.edge);
-        frame.gfx.lineStyle({ color: props.settings.palette.edge, width: 2, alignment: 0 });
-        frame.gfx.position.set(-100, -100);
-        edges.set(id, frame);
-        app.stage.addChild(frame.gfx);
+        agents.set(id, frame);
+        frame.ctx.lineStyle({ color: 0x0000ff, width: 4, alignment: 0 });
+        app.stage.addChild(frame.ctx);
       }
       for (let id in update.removedAgents) {
         agents.delete(id);
@@ -95,35 +83,49 @@ function Display(props: DisplayProps) {
         edges.delete(id);
       }
     }
+   
+    const debug = new Graphics();
+    app.stage.addChild(debug);
 
-    const updatePositions = () => {
-      console.log('Updating positions');
+    const redraw = () => {
+      debug.clear();
+      debug.lineStyle({ color: 0xffffff, width: 2, alignment: 0 });
+      debug.drawCircle(100, 100, 2);
+      debug.drawCircle(100, 200, 3);
+      debug.drawCircle(200, 300, 4);
+      debug.drawCircle(100, 300, 5);
+      debug.drawCircle(100, 400, 7);
+      debug.position.set(0, 0);
+
       const height = window.innerHeight;
       const width = window.innerWidth;
+
       edges.forEach((frame, id) => {
-        console.log(id);
         const seg = state.sim.getEdgePosition(id);
-        frame.gfx.clear();
-        frame.gfx.position.set(seg[0][0] * width, seg[0][1] * height);
-        frame.gfx.lineTo(seg[1][0] * width, seg[1][1] * height);
+
+        const ax = seg[0][0] * width;
+        const ay = seg[0][1] * height;
+        const bx = seg[1][0] * width - ax;
+        const by = seg[1][1] * height - ay;
+
+        frame.ctx.position.set(ax, ay);
+        frame.ctx.lineTo(bx, by);
       });
       nodes.forEach((frame, id) => {
-        console.log(`Updating Node { id }`);
         const pos = state.sim.getNodePosition(id);
-        frame.gfx.position.set(pos[0] * width, pos[1] * height);
+        frame.ctx.position.set(pos[0] * width, pos[1] * height);
+        frame.ctx.drawCircle(0, 0, 5);
       });
       agents.forEach((frame, id) => {
         const pos = state.sim.getAgentPosition(id);
-        frame.gfx.position.set(pos[0] * width, pos[1] * height);
+        frame.ctx.position.set(pos[0] * width, pos[1] * height);
+        frame.ctx.drawCircle(0, 0, 5);
       });
     }
 
     let elapsed = 0
     let initialTick = true;
     app.ticker.add((delta) => {
-      frame.position.set(100.0 + Math.cos(elapsed/50.0) * 100.0, 200);
-      elapsed += delta;
-
       let update: SimUpdate;
       if (initialTick) {
         update = state.sim.initTest();
@@ -133,8 +135,13 @@ function Display(props: DisplayProps) {
       }
 
       processSimUpdate(update);
-      updatePositions();
+      redraw();
     });
+
+    const onResize = () => {
+      // TODO(tiernan): Implement
+    }
+    onResize();
 
 
     ref.current!.appendChild(app.view);

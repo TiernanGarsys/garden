@@ -1,4 +1,5 @@
 import { Settings } from './Settings';
+import Overlay from '../components/Overlay';
 
 export type AgentId = string;
 export type EdgeId = string;
@@ -52,12 +53,12 @@ class Sim {
     this.nodes.set("N1", {
       id: "N1",
       position: [0.25, 0.5],
-      edges: ["E1", "E2"],
+      edges: ["E1"],
     });
     this.nodes.set("N2", {
       id: "N2",
       position: [0.75, 0.5],
-      edges: ["E1", "E2"],
+      edges: ["E2"],
     });
     this.edges.set("E1", {
       id: "E1",
@@ -69,9 +70,16 @@ class Sim {
       src: "N2",
       dst: "N1",
     });
+    this.agents.set("A1", {
+      id: "A1",
+      position: [0.5, 0.5],
+      currentDest: "N1",
+      finalDest: "N1",
+      currentEdge: "E1",
+    });
 
     return {
-      addedAgents: [],
+      addedAgents: ["A1"],
       addedNodes: ["N1", "N2"],
       addedEdges: ["E1", "E2"],
       removedAgents: [],
