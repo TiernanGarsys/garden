@@ -41,6 +41,10 @@ class Sim {
   MAX_NODES = 100;
   MAX_AGENTS = 100;
 
+  BASE_AGENT_SPEED = 1;
+
+  OVERLAP_THRESHOLD = 0.001;
+
   settings: Settings;
   agents: Map<AgentId, Agent>;
   nodes: Map<NodeId, Node>;
@@ -123,17 +127,36 @@ class Sim {
     }
   }
 
+  getDistance(p1: Point, p2: Point) {
+    const dx = Math.abs(p2[0] - p1[0]);
+    const dy = Math.abs(p2[0] - p1[0]);
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  atDestination(agent: Agent) {
+    const destination = this.getNode(agent.currentDest);
+    return this.getDistance(agent.position, destination.position) < this.OVERLAP_THRESHOLD;
+  }
+
   tick(delta: number): SimUpdate {
 
     // TODO(tiernan): Check whether we should remove nodes ()
     // TODO(tiernan): Check whether we should remove edge (references null node)
 
-    for (let agent in this.agents) {
+    this.agents.forEach((agent, id) => {
+      if (this.atDestination(agent)) {
+        if (agent.currentDest == agent.finalDest) {
+          // TODO(tiernan): ???
+        } else {
+          // TODO(tiernan): Find next current dest (path through)
+        }
+      }
+    })
+
       // TODO(tiernan): If agent is at final dstination, delete
       // TODO(tiernan): If agent is at current dstination, choose new one
       // TODO(tiernan): ELSE: move agent toward current dstination at speed
       //  informed by edge being used for travel
-    }
 
     // TODO(tiernan): Check whether we should add agents (time since last AND not full)
     // TODO(tiernan): Check whether we should add nodes (time since last AND not full)
