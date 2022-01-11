@@ -45,15 +45,32 @@ function Display(props: DisplayProps) {
       backgroundColor: props.settings.palette.background,
     });
 
+    const agentLayer = new Graphics();
+    const nodeLayer = new Graphics();
+    const edgeLayer = new Graphics();
+
+    agentLayer.addChild(nodeLayer);
+    nodeLayer.addChild(edgeLayer);
+    app.stage.addChild(agentLayer);
+
     const processSimUpdate= (update: SimUpdate) => {
+      for (let id of update.addedAgents) {
+        let frame = {
+          id: id,
+          ctx: new Graphics(),
+        };
+        agents.set(id, frame);
+        frame.ctx.lineStyle({ color: 0x0000ff, width: 2, alignment: 0 });
+        agentLayer.addChild(frame.ctx);
+      }
       for (let id of update.addedEdges) {
         let frame = {
           id: id,
           ctx: new Graphics(),
         };
         edges.set(id, frame);
-        frame.ctx.lineStyle({ color: 0x00ff00, width: 2, alignment: 0 });
-        app.stage.addChild(frame.ctx);
+        frame.ctx.lineStyle({ color: 0x00ff00, width: 1, alignment: 0 });
+        edgeLayer.addChild(frame.ctx);
       }
       for (let id of update.addedNodes) {
         let frame = {
@@ -61,17 +78,8 @@ function Display(props: DisplayProps) {
           ctx: new Graphics(),
         };
         nodes.set(id, frame);
-        frame.ctx.lineStyle({ color: 0xff0000, width: 2, alignment: 0 });
-        app.stage.addChild(frame.ctx);
-      }
-      for (let id of update.addedAgents) {
-        let frame = {
-          id: id,
-          ctx: new Graphics(),
-        };
-        agents.set(id, frame);
-        frame.ctx.lineStyle({ color: 0x0000ff, width: 4, alignment: 0 });
-        app.stage.addChild(frame.ctx);
+        frame.ctx.lineStyle({ color: 0xff0000, width: 1, alignment: 0 });
+        nodeLayer.addChild(frame.ctx);
       }
       for (let id in update.removedAgents) {
         agents.delete(id);
