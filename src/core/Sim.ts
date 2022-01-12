@@ -164,11 +164,12 @@ class Sim {
     if (this.elapsed == 0 || (this.agents.size < this.MAX_AGENTS && this.elapsed % this.AGENT_SPAWN_RATE == 0)) {
       const id = this.getNextId();
       addedAgents.push(id);
+      const spawnNode = _.sample(Array.from(this.nodes.values()))!;
       this.agents.set(id, {
         id: id,
-        position: _.sample(Array.from(this.nodes.values()))!.position,
-        currentDest: _.sample(Array.from(this.nodes.keys()))!,
-        finalDest: _.sample(Array.from(this.nodes.keys()))!,
+        position: spawnNode.position,
+        currentDest: spawnNode.id,
+        finalDest: spawnNode.id,
         currentEdge: null,
       });
     }
