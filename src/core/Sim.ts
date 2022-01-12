@@ -38,12 +38,13 @@ interface Edge {
   src: NodeId,
   dst: NodeId,
   uses: number,
+  lastUse: number,
 }
 
 class Sim {
   // TODO(tiernan): Configure these via settings.
-  MAX_NODES = 10;
-  MAX_AGENTS = 1;
+  MAX_NODES = 100;
+  MAX_AGENTS = 50;
 
   BASE_AGENT_SPEED = 0.001;
   USE_SPEED_SCALE = 0.0005;
@@ -244,13 +245,15 @@ class Sim {
                 id: id1,
                 src: src,
                 dst: nextStep[0],
-                uses: 500,
+                uses: 1,
+                lastUse: this.elapsed,
             });
             this.edges.set(id2, {
                 id: id2,
                 src: nextStep[0],
                 dst: src,
-                uses: 500,
+                uses: 1,
+                lastUse: this.elapsed,
             });
             const srcNode = this.getNode(src);
             const dstNode = this.getNode(nextStep[0]);
@@ -261,6 +264,7 @@ class Sim {
             const edge = this.getEdge(nextStep[1]);
             console.log(`USING EDGE ${edge.id} with uses ${edge.uses}`)
             edge.uses += 1;
+            edge.lastUse = this.elapsed;
           }
 
           agent.currentDest = nextStep[0];
@@ -271,9 +275,6 @@ class Sim {
 
       agent.position = this.getNextPosition(agent);
     });
-
-    // TODO(tiernan): Check whether we should add agents (time since last AND not full)
-    // TODO(tiernan): Check whether we should add nodes (time since last AND not full)
 
     update = {...update, ...{addedEdges: addedEdges}};
     this.elapsed += 1;
