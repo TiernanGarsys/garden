@@ -42,8 +42,8 @@ interface Edge {
 
 class Sim {
   // TODO(tiernan): Configure these via settings.
-  MAX_NODES = 50;
-  MAX_AGENTS = 25;
+  MAX_NODES = 5;
+  MAX_AGENTS = 1;
 
   BASE_AGENT_SPEED = 0.001;
   USE_SPEED_SCALE = 0.0005;
@@ -192,10 +192,13 @@ class Sim {
     let dist = this.getDistance(from.position, to.position);
 
     for (const candidateId of from.edges) {
-      const candidate = this.getEdge(candidateId);
+      const candidate = this.getEdge(candidateId)!;
+      const candidateDst = this.getNode(candidate.dst);
       const scaled = this.getScaledDistance(candidateId);
+      const remaining = this.getDistance(candidateDst.position, to.position)
 
-      if (scaled < dist) {
+
+      if (scaled + remaining < dist) {
         dest = candidate.dst;
         dist = scaled;
         edge = candidateId;
@@ -207,10 +210,6 @@ class Sim {
 
   tick(delta: number): SimUpdate {
     let update = this.spawn();
-
-    // TODO: scale by delta instead of assuming same time per tick
-    // TODO(tiernan): Check whether we should remove nodes ()
-    // TODO(tiernan): Check whether we should remove edge (references null node)
 
     this.agents.forEach((agent, id) => {
       if (this.atDestination(agent)) {
@@ -227,13 +226,19 @@ class Sim {
               id: newEdgeId,
               src: src,
               dst: nextStep[0],
-              uses: 1,
+              uses: 0,
           });
+          const srcNode = this.getNode(src);
+          srcNode.edges.push(newEdgeId);
           update = {...update, ...{addedEdges: [newEdgeId]}}
+        } else {
+          const edge = this.getEdge(nextStep[1]);
+          edge.uses += 1;
         }
-        // TODO(tiernan): Form edge between src and currentDest if one doesn't exist, else increase uses by one
-        agent.currentEdge = nextStep[1];
+
         agent.currentDest = nextStep[0];
+        agent.currentEdge = nextStep[1];
+        console.log(`Agent "${id}", CURR: ${agent.currentDest}, FINAL: ${agent.finalDest}` );
       }
 
       agent.position = this.getNextPosition(agent);
