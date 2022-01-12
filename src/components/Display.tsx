@@ -126,16 +126,8 @@ function Display(props: DisplayProps) {
       });
     }
 
-    let initialTick = true;
     app.ticker.add((delta) => {
-      let update: SimUpdate;
-      if (initialTick) {
-        update = state.sim.initTest();
-        initialTick = false;
-      } else {
-        update = state.sim.tick(delta);
-      }
-
+      let update = state.sim.tick(delta);
       processSimUpdate(update);
       redraw();
     });

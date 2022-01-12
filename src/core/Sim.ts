@@ -22,7 +22,6 @@ interface Agent {
   position: Point,
   finalDest: NodeId,
   currentDest: NodeId,
-  currentEdge: EdgeId,
 }
 
 interface Node {
@@ -40,10 +39,13 @@ interface Edge {
 
 class Sim {
   // TODO(tiernan): Configure these via settings.
-  MAX_NODES = 100;
+  MAX_NODES = 50;
   MAX_AGENTS = 100;
 
   BASE_AGENT_SPEED = 0.001;
+
+  NODE_SPAWN_RATE = 500;
+  AGENT_SPAWN_RATE = 500;
 
   OVERLAP_THRESHOLD = 0.001;
 
@@ -52,72 +54,17 @@ class Sim {
   nodes: Map<NodeId, Node>;
   edges:Map<EdgeId, Edge>; 
 
+  nextId: number;
+  elapsed: number;
+
   constructor(settings: Settings) {
     this.settings = settings;
     this.agents = new Map<AgentId, Agent>();
     this.nodes = new Map<NodeId, Node>();
     this.edges = new Map<EdgeId, Edge>();
-  }
 
-  initTest() {
-    this.nodes.set("N1", {
-      id: "N1",
-      position: [0.25, 0.5],
-      edges: ["E1"],
-      neighbors: ["N2"],
-    });
-    this.nodes.set("N2", {
-      id: "N2",
-      position: [0.75, 0.5],
-      edges: ["E2"],
-      neighbors: ["N1"],
-    });
-    this.nodes.set("N3", {
-      id: "N3",
-      position: [0.6, 0.2],
-      edges: ["E2"],
-      neighbors: [],
-    });
-    this.edges.set("E1", {
-      id: "E1",
-      src: "N1",
-      dst: "N2",
-    });
-    this.edges.set("E2", {
-      id: "E2",
-      src: "N2",
-      dst: "N1",
-    });
-    this.agents.set("A1", {
-      id: "A1",
-      position: [0.5, 0.5],
-      currentDest: "N1",
-      finalDest: "N1",
-      currentEdge: "E1",
-    });
-    this.agents.set("A2", {
-      id: "A2",
-      position: [0.5, 0.5],
-      currentDest: "N2",
-      finalDest: "N1",
-      currentEdge: "E1",
-    });
-    this.agents.set("A3", {
-      id: "A2",
-      position: [0.5, 0.5],
-      currentDest: "N3",
-      finalDest: "N2",
-      currentEdge: "E1",
-    });
-
-    return {
-      addedAgents: ["A1", "A2", "A3"],
-      addedNodes: ["N1", "N2", "N3"],
-      addedEdges: ["E1", "E2"],
-      removedAgents: [],
-      removedNodes: [],
-      removedEdges: [],
-    };
+    this.elapsed = 0;
+    this.nextId = 0;
   }
 
   setSettings(settings: Settings) {
@@ -149,6 +96,12 @@ class Sim {
     } else {
       throw new Error(`No edge with ID: ${ id }`)
     }
+  }
+
+  getNextId() {
+    const newId = this.nextId
+    this.nextId += 1;
+    return newId.toString();
   }
 
   getDistance(p1: Point, p2: Point) {
@@ -237,7 +190,44 @@ class Sim {
     }
   }
 
+  spawn(): SimUpdate {
+    const addedNodes = [];
+    const addedAgents = [];
+
+    if (this.elapsed == 0 || (this.nodes.size < this.MAX_NODES && this.elapsed % this.NODE_SPAWN_RATE == 0)) {
+      const id = this.getNextId();
+      this.nodes.set(id, {
+        id: id,
+        edges: [],
+        neighbors: [],
+        position: [Math.random(), Math.random()]
+      });
+      addedNodes.push(id);
+    }
+    if (this.elapsed == 0 || (this.agents.size < this.MAX_AGENTS && this.elapsed % this.AGENT_SPAWN_RATE == 0)) {
+      const id = this.getNextId();
+      addedAgents.push(id);
+      this.agents.set(id, {
+        id: id,
+        position: [Math.random(), Math.random()],
+        currentDest: _.sample(Array.from(this.nodes.keys()))!,
+        finalDest: _.sample(Array.from(this.nodes.keys()))!,
+      });
+    }
+    return {
+      addedAgents: addedAgents,
+      addedNodes: addedNodes,
+      addedEdges: [],
+      removedAgents: [],
+      removedNodes: [],
+      removedEdges: [],
+    };
+  }
+
   tick(delta: number): SimUpdate {
+    const update = this.spawn();
+
+    // TODO: scale by delta instead of assuming same time per tick
     // TODO(tiernan): Check whether we should remove nodes ()
     // TODO(tiernan): Check whether we should remove edge (references null node)
 
@@ -257,14 +247,8 @@ class Sim {
     // TODO(tiernan): Check whether we should add agents (time since last AND not full)
     // TODO(tiernan): Check whether we should add nodes (time since last AND not full)
 
-    return {
-      addedAgents: [],
-      addedNodes: [],
-      addedEdges: [],
-      removedAgents: [],
-      removedNodes: [],
-      removedEdges: [],
-    };
+    this.elapsed += 1;
+    return update;
   }
 }
 
