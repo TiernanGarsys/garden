@@ -209,7 +209,7 @@ class Sim {
       addedAgents.push(id);
       this.agents.set(id, {
         id: id,
-        position: [Math.random(), Math.random()],
+        position: _.sample(Array.from(this.nodes.values()))!.position,
         currentDest: _.sample(Array.from(this.nodes.keys()))!,
         finalDest: _.sample(Array.from(this.nodes.keys()))!,
       });
