@@ -43,6 +43,7 @@ function Display(props: DisplayProps) {
     const app = new Application({
       resizeTo: window,
       backgroundColor: props.settings.palette.background,
+      antialias: true,
     });
 
     const agentLayer = new Graphics();
