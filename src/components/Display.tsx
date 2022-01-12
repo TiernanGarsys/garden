@@ -57,8 +57,8 @@ function Display(props: DisplayProps) {
       const height = window.innerHeight;
       const width = window.innerWidth;
 
-      for (let id of update.addedAgents) {
-        let frame = {
+      for (const id of update.addedAgents) {
+        const frame = {
           id: id,
           ctx: new Graphics(),
         };
@@ -67,13 +67,13 @@ function Display(props: DisplayProps) {
         frame.ctx.drawCircle(0, 0, 5);
         agentLayer.addChild(frame.ctx);
       }
-      for (let id of update.addedEdges) {
-        let frame = {
+      for (const id of update.addedEdges) {
+        const frame = {
           id: id,
           ctx: new Graphics(),
         };
         edges.set(id, frame);
-        frame.ctx.lineStyle({ color: 0xFFFFFF, width: 0.5, alignment: 0 });
+        frame.ctx.lineStyle({ color: 0xFFFFFF, width: 1, alignment: 0 });
         const edge = state.sim.getEdge(id);
         const n1 = state.sim.getNode(edge.src);
         const n2 = state.sim.getNode(edge.dst);
@@ -87,8 +87,8 @@ function Display(props: DisplayProps) {
         frame.ctx.lineTo(bx, by);
         edgeLayer.addChild(frame.ctx);
       }
-      for (let id of update.addedNodes) {
-        let frame = {
+      for (const id of update.addedNodes) {
+        const frame = {
           id: id,
           ctx: new Graphics(),
         };
@@ -97,13 +97,13 @@ function Display(props: DisplayProps) {
         frame.ctx.drawCircle(0, 0, 5);
         nodeLayer.addChild(frame.ctx);
       }
-      for (let id in update.removedAgents) {
+      for (const id in update.removedAgents) {
         agents.delete(id);
       }
-      for (let id in update.removedNodes) {
+      for (const id in update.removedNodes) {
         nodes.delete(id);
       }
-      for (let id in update.removedEdges) {
+      for (const id in update.removedEdges) {
         edges.delete(id);
       }
     }
@@ -127,7 +127,7 @@ function Display(props: DisplayProps) {
     }
 
     app.ticker.add((delta) => {
-      let update = state.sim.tick(delta);
+      const update = state.sim.tick(delta);
       processSimUpdate(update);
       redraw();
     });

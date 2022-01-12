@@ -1,4 +1,6 @@
 import * as _ from "lodash";
+import { UPDATE_PRIORITY } from "pixi.js";
+import { getEnabledCategories } from "trace_events";
 
 import { Settings } from './Settings';
 
@@ -22,30 +24,32 @@ interface Agent {
   position: Point,
   finalDest: NodeId,
   currentDest: NodeId,
+  currentEdge: EdgeId | null,
 }
 
 interface Node {
   id: AgentId,
   position: Point,
   edges: EdgeId[],
-  neighbors: NodeId[],
 }
 
 interface Edge {
   id: EdgeId,
   src: NodeId,
   dst: NodeId,
+  uses: number,
 }
 
 class Sim {
   // TODO(tiernan): Configure these via settings.
   MAX_NODES = 50;
-  MAX_AGENTS = 100;
+  MAX_AGENTS = 25;
 
   BASE_AGENT_SPEED = 0.001;
+  USE_SPEED_SCALE = 0.0005;
 
-  NODE_SPAWN_RATE = 500;
-  AGENT_SPAWN_RATE = 500;
+  NODE_SPAWN_RATE = 25;
+  AGENT_SPAWN_RATE = 50;
 
   OVERLAP_THRESHOLD = 0.001;
 
@@ -110,67 +114,20 @@ class Sim {
     return Math.sqrt(dx * dx + dy * dy);
   }
 
+  getScaledDistance(id: EdgeId) {
+    // TODO: could be null (if deleted while traversing)
+    const edge = this.getEdge(id);
+    const src = this.getNode(edge.src);
+    const dst = this.getNode(edge.dst);
+
+    const distance = this.getDistance(src.position, dst.position);
+    return distance / (this.BASE_AGENT_SPEED + this.USE_SPEED_SCALE * edge.uses);
+  }
+
   atDestination(agent: Agent) {
     const destination = this.getNode(agent.currentDest);
     return this.getDistance(agent.position, destination.position) < this.OVERLAP_THRESHOLD;
   }
-
-  /*
-  getNextStep(current: NodeId, destination: NodeId): NodeId {
-    if (current == destination) {
-      return destination;
-    }
-
-    const unvisited = Array.from(this.nodes.keys());
-    const distanceById = new Map<NodeId, number>();
-    const parentById = new Map<NodeId, NodeId>();
-    distanceById.set(current, 0);
-
-    // TODO(tiernan): Short-circuit based on heuristic.
-
-    while (unvisited.length > 0) {
-      let currNodeId = null;
-      let currDistance = Number.MAX_VALUE;
-      for (const nodeId of unvisited) {
-        if (distanceById.has(nodeId) && distanceById.get(nodeId)! < currDistance) {
-          currNodeId = nodeId;
-          currDistance = distanceById.get(nodeId)!;
-        }
-      }
-
-      if (currNodeId == destination) {
-        break;
-      }
-
-      const currNode = this.nodes.get(currNodeId!);
-      const neighbors = currNode?.neighbors.filter((v) => {
-        return unvisited.lastIndexOf(v) >= 0;
-      })!;
-
-      if (neighbors) {
-        for (const neighborId of neighbors) {
-          const neighbor = this.getNode(neighborId);
-          const distanceToNeighbor = distanceById.get(currNodeId!)! + this.getDistance(currNode?.position!, neighbor.position!);
-          if (distanceById.get(neighborId)! > distanceToNeighbor) {
-            distanceById.set(neighborId, distanceToNeighbor);
-            parentById.set(neighborId, currNodeId!);
-          }
-        }
-      }
-
-      unvisited.splice(unvisited.lastIndexOf(currNodeId!), 1);
-    }
-
-    let nextDestination = destination;
-    while (parentById.get(nextDestination) != current) {
-      nextDestination = parentById.get(nextDestination)!;
-    }
-
-    return nextDestination;
-    // TODO: account for edge speed weightingA
-    // TODO: cache distance graph
-  }
-  */
 
   getNextPosition(agent: Agent): Point {
     const curr = agent.position;
@@ -184,6 +141,7 @@ class Sim {
     const dy = dest[1] - curr[1];
 
     if (scale >= 1) {
+      // If we would go past the destination at the current speed
       return [curr[0] + dx, curr[1] + dy]
     } else {
       return [curr[0] + dx * scale, curr[1] + dy * scale];
@@ -199,7 +157,6 @@ class Sim {
       this.nodes.set(id, {
         id: id,
         edges: [],
-        neighbors: [],
         position: [Math.random(), Math.random()]
       });
       addedNodes.push(id);
@@ -212,6 +169,7 @@ class Sim {
         position: _.sample(Array.from(this.nodes.values()))!.position,
         currentDest: _.sample(Array.from(this.nodes.keys()))!,
         finalDest: _.sample(Array.from(this.nodes.keys()))!,
+        currentEdge: null,
       });
     }
     return {
@@ -224,8 +182,30 @@ class Sim {
     };
   }
 
+  getNextStep(fromId: NodeId, toId: NodeId): [NodeId, EdgeId | null] {
+    const from = this.getNode(fromId);
+    const to = this.getNode(toId);
+
+    let dest = toId;
+    let edge = null;
+    let dist = this.getDistance(from.position, to.position);
+
+    for (const candidateId of from.edges) {
+      const candidate = this.getEdge(candidateId);
+      const scaled = this.getScaledDistance(candidateId);
+
+      if (scaled < dist) {
+        dest = candidate.dst;
+        dist = scaled;
+        edge = candidateId;
+      }
+    }
+
+    return [dest, edge];
+  }
+
   tick(delta: number): SimUpdate {
-    const update = this.spawn();
+    let update = this.spawn();
 
     // TODO: scale by delta instead of assuming same time per tick
     // TODO(tiernan): Check whether we should remove nodes ()
@@ -237,8 +217,22 @@ class Sim {
         if (agent.currentDest == agent.finalDest) {
           agent.finalDest = _.sample(Array.from(this.nodes.keys()))!;
         }
-        agent.currentDest = agent.finalDest;
-        // agent.currentDest = this.getNextStep(agent.currentDest, agent.finalDest);
+        const src = agent.currentDest;
+        const nextStep = this.getNextStep(src, agent.finalDest);
+
+        if (nextStep[1] == null) {
+          const newEdgeId = this.getNextId();
+          this.edges.set(newEdgeId, {
+              id: newEdgeId,
+              src: src,
+              dst: nextStep[0],
+              uses: 1,
+          });
+          update = {...update, ...{addedEdges: [newEdgeId]}}
+        }
+        // TODO(tiernan): Form edge between src and currentDest if one doesn't exist, else increase uses by one
+        agent.currentEdge = nextStep[1];
+        agent.currentDest = nextStep[0];
       }
 
       agent.position = this.getNextPosition(agent);

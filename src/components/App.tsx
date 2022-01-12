@@ -22,19 +22,19 @@ function App() {
     showOverlay: false,
   });
 
-  let onKeyDown = useCallback(() => {
+  const onKeyDown = useCallback(() => {
     setState({...state, ...{showOverlay: true, showMessage: false}});
   }, [state, setState]);
 
-  let onClick = useCallback(() => {
+  const onClick = useCallback(() => {
     console.log("TODO: Add click behavior");
   }, [state, setState]);
 
-  let overlayUpdate = useCallback((settings: Settings) => {
+  const overlayUpdate = useCallback((settings: Settings) => {
     setState({...state, ...{settings: settings}});
   }, [state, setState]);
 
-  let overlayDismiss = useCallback(() => {
+  const overlayDismiss = useCallback(() => {
     setState({...state, ...{showMessage: true, showOverlay: false}});
   }, [state, setState]);
 
