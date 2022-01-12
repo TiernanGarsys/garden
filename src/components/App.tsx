@@ -26,11 +26,6 @@ function App() {
     setState({...state, ...{showOverlay: true, showMessage: false}});
   }, [state, setState]);
 
-  useEffect(() => {  
-    window.addEventListener("keydown", onKeyDown, true);  
-    return () => window.removeEventListener("keydown", onKeyDown, true);
-  }, [onKeyDown]);
-
   let onClick = useCallback(() => {
     console.log("TODO: Add click behavior");
   }, [state, setState]);
@@ -43,10 +38,12 @@ function App() {
     setState({...state, ...{showMessage: true, showOverlay: false}});
   }, [state, setState]);
 
+  /*
   useEffect(() => {  
     window.addEventListener("keydown", onKeyDown, true);  
     return () => window.removeEventListener("keydown", onKeyDown, true);
   }, [onKeyDown]);
+  */
 
   return (
     <div className="App" 

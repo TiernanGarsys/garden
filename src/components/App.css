@@ -3,6 +3,7 @@
   animation-name: fadeout;
   color: #CCCCCC;
   font-family: "vietnam", "Courier New", "monospace";
+  opacity: 0%;
   position: absolute;
   top: 16px;
   left: 16px;
