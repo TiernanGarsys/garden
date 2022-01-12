@@ -1,5 +1,6 @@
+import * as _ from "lodash";
+
 import { Settings } from './Settings';
-import Overlay from '../components/Overlay';
 
 export type AgentId = string;
 export type EdgeId = string;
@@ -28,6 +29,7 @@ interface Node {
   id: AgentId,
   position: Point,
   edges: EdgeId[],
+  neighbors: NodeId[],
 }
 
 interface Edge {
@@ -41,7 +43,7 @@ class Sim {
   MAX_NODES = 100;
   MAX_AGENTS = 100;
 
-  BASE_AGENT_SPEED = 1;
+  BASE_AGENT_SPEED = 0.001;
 
   OVERLAP_THRESHOLD = 0.001;
 
@@ -62,11 +64,19 @@ class Sim {
       id: "N1",
       position: [0.25, 0.5],
       edges: ["E1"],
+      neighbors: ["N2"],
     });
     this.nodes.set("N2", {
       id: "N2",
       position: [0.75, 0.5],
       edges: ["E2"],
+      neighbors: ["N1"],
+    });
+    this.nodes.set("N3", {
+      id: "N3",
+      position: [0.6, 0.2],
+      edges: ["E2"],
+      neighbors: [],
     });
     this.edges.set("E1", {
       id: "E1",
@@ -85,10 +95,24 @@ class Sim {
       finalDest: "N1",
       currentEdge: "E1",
     });
+    this.agents.set("A2", {
+      id: "A2",
+      position: [0.5, 0.5],
+      currentDest: "N2",
+      finalDest: "N1",
+      currentEdge: "E1",
+    });
+    this.agents.set("A3", {
+      id: "A2",
+      position: [0.5, 0.5],
+      currentDest: "N3",
+      finalDest: "N2",
+      currentEdge: "E1",
+    });
 
     return {
-      addedAgents: ["A1"],
-      addedNodes: ["N1", "N2"],
+      addedAgents: ["A1", "A2", "A3"],
+      addedNodes: ["N1", "N2", "N3"],
       addedEdges: ["E1", "E2"],
       removedAgents: [],
       removedNodes: [],
@@ -138,25 +162,99 @@ class Sim {
     return this.getDistance(agent.position, destination.position) < this.OVERLAP_THRESHOLD;
   }
 
+  /*
+  getNextStep(current: NodeId, destination: NodeId): NodeId {
+    if (current == destination) {
+      return destination;
+    }
+
+    const unvisited = Array.from(this.nodes.keys());
+    const distanceById = new Map<NodeId, number>();
+    const parentById = new Map<NodeId, NodeId>();
+    distanceById.set(current, 0);
+
+    // TODO(tiernan): Short-circuit based on heuristic.
+
+    while (unvisited.length > 0) {
+      let currNodeId = null;
+      let currDistance = Number.MAX_VALUE;
+      for (const nodeId of unvisited) {
+        if (distanceById.has(nodeId) && distanceById.get(nodeId)! < currDistance) {
+          currNodeId = nodeId;
+          currDistance = distanceById.get(nodeId)!;
+        }
+      }
+
+      if (currNodeId == destination) {
+        break;
+      }
+
+      const currNode = this.nodes.get(currNodeId!);
+      const neighbors = currNode?.neighbors.filter((v) => {
+        return unvisited.lastIndexOf(v) >= 0;
+      })!;
+
+      if (neighbors) {
+        for (const neighborId of neighbors) {
+          const neighbor = this.getNode(neighborId);
+          const distanceToNeighbor = distanceById.get(currNodeId!)! + this.getDistance(currNode?.position!, neighbor.position!);
+          if (distanceById.get(neighborId)! > distanceToNeighbor) {
+            distanceById.set(neighborId, distanceToNeighbor);
+            parentById.set(neighborId, currNodeId!);
+          }
+        }
+      }
+
+      unvisited.splice(unvisited.lastIndexOf(currNodeId!), 1);
+    }
+
+    let nextDestination = destination;
+    while (parentById.get(nextDestination) != current) {
+      nextDestination = parentById.get(nextDestination)!;
+    }
+
+    return nextDestination;
+    // TODO: account for edge speed weightingA
+    // TODO: cache distance graph
+  }
+  */
+
+  getNextPosition(agent: Agent): Point {
+    const curr = agent.position;
+    const dest = this.getNode(agent.currentDest).position;
+    const dist = this.getDistance(curr, dest);
+
+    // TODO(tiernan): Consider edge scaling
+    const scale = this.BASE_AGENT_SPEED / dist;
+
+    const dx = dest[0] - curr[0];
+    const dy = dest[1] - curr[1];
+
+    if (scale >= 1) {
+      return [curr[0] + dx, curr[1] + dy]
+    } else {
+      return [curr[0] + dx * scale, curr[1] + dy * scale];
+    }
+  }
+
   tick(delta: number): SimUpdate {
+    console.log(`delta: ${delta}`);
 
     // TODO(tiernan): Check whether we should remove nodes ()
     // TODO(tiernan): Check whether we should remove edge (references null node)
 
     this.agents.forEach((agent, id) => {
       if (this.atDestination(agent)) {
+        console.log("JOB'S DONE!");
         if (agent.currentDest == agent.finalDest) {
-          // TODO(tiernan): ???
-        } else {
-          // TODO(tiernan): Find next current dest (path through)
+          agent.finalDest = _.sample(Array.from(this.nodes.keys()))!;
         }
+        agent.currentDest = agent.finalDest;
+        // agent.currentDest = this.getNextStep(agent.currentDest, agent.finalDest);
       }
-    })
 
-      // TODO(tiernan): If agent is at final dstination, delete
-      // TODO(tiernan): If agent is at current dstination, choose new one
-      // TODO(tiernan): ELSE: move agent toward current dstination at speed
-      //  informed by edge being used for travel
+      agent.position = this.getNextPosition(agent);
+    });
 
     // TODO(tiernan): Check whether we should add agents (time since last AND not full)
     // TODO(tiernan): Check whether we should add nodes (time since last AND not full)
