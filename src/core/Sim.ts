@@ -210,6 +210,7 @@ class Sim {
 
   tick(delta: number): SimUpdate {
     let update = this.spawn();
+    const addedEdges: EdgeId[] = [];
 
     this.agents.forEach((agent, id) => {
       if (this.atDestination(agent)) {
@@ -221,18 +222,28 @@ class Sim {
         const nextStep = this.getNextStep(src, agent.finalDest);
 
         if (nextStep[1] == null) {
-          const newEdgeId = this.getNextId();
-          this.edges.set(newEdgeId, {
-              id: newEdgeId,
+          const id1 = this.getNextId();
+          const id2 = this.getNextId();
+          this.edges.set(id1, {
+              id: id1,
               src: src,
               dst: nextStep[0],
-              uses: 0,
+              uses: 500,
+          });
+          this.edges.set(id2, {
+              id: id2,
+              src: nextStep[0],
+              dst: src,
+              uses: 500,
           });
           const srcNode = this.getNode(src);
-          srcNode.edges.push(newEdgeId);
-          update = {...update, ...{addedEdges: [newEdgeId]}}
+          const dstNode = this.getNode(nextStep[0]);
+          srcNode.edges.push(id1);
+          dstNode.edges.push(id2);
+          addedEdges.push(id1, id2);
         } else {
           const edge = this.getEdge(nextStep[1]);
+          console.log(`USING EDGE ${edge.id} with uses ${edge.uses}`)
           edge.uses += 1;
         }
 
@@ -247,6 +258,7 @@ class Sim {
     // TODO(tiernan): Check whether we should add agents (time since last AND not full)
     // TODO(tiernan): Check whether we should add nodes (time since last AND not full)
 
+    update = {...update, ...{addedEdges: addedEdges}};
     this.elapsed += 1;
     return update;
   }
