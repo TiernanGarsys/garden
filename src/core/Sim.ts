@@ -42,7 +42,7 @@ interface Edge {
 
 class Sim {
   // TODO(tiernan): Configure these via settings.
-  MAX_NODES = 5;
+  MAX_NODES = 10;
   MAX_AGENTS = 1;
 
   BASE_AGENT_SPEED = 0.001;
@@ -114,14 +114,31 @@ class Sim {
     return Math.sqrt(dx * dx + dy * dy);
   }
 
-  getScaledDistance(id: EdgeId) {
+  getScaledDistance(srcId: NodeId, dstId: NodeId): number {
     // TODO: could be null (if deleted while traversing)
-    const edge = this.getEdge(id);
-    const src = this.getNode(edge.src);
-    const dst = this.getNode(edge.dst);
+    const srcNode = this.getNode(srcId);
+    const dstNode = this.getNode(dstId);
 
-    const distance = this.getDistance(src.position, dst.position);
-    return distance / (this.BASE_AGENT_SPEED + this.USE_SPEED_SCALE * edge.uses);
+    let usableEdge = null;
+    for (const e of srcNode.edges) {
+      const edge = this.getEdge(e);
+      if (edge.dst == dstId) {
+        usableEdge = edge;
+        break;
+      }
+    }
+
+    const distance = this.getDistance(srcNode.position, dstNode.position);
+
+    let scaled = 0;
+    if (usableEdge != null) {
+      scaled = distance / (this.BASE_AGENT_SPEED + this.USE_SPEED_SCALE * usableEdge.uses);
+    } else {
+      scaled = distance / this.BASE_AGENT_SPEED;
+    }
+
+    console.log(`SCALED: ${distance} => ${scaled}`)
+    return scaled; 
   }
 
   atDestination(agent: Agent) {
@@ -189,16 +206,15 @@ class Sim {
 
     let dest = toId;
     let edge = null;
-    let dist = this.getDistance(from.position, to.position);
+    let dist = this.getScaledDistance(fromId, toId);
 
     for (const candidateId of from.edges) {
       const candidate = this.getEdge(candidateId)!;
       const candidateDst = this.getNode(candidate.dst);
-      const scaled = this.getScaledDistance(candidateId);
-      const remaining = this.getDistance(candidateDst.position, to.position)
+      const scaled = this.getScaledDistance(fromId, candidateDst.id);
+      const remaining = scaled + this.getScaledDistance(candidateDst.id, toId);
 
-
-      if (scaled + remaining < dist) {
+      if (remaining < dist) {
         dest = candidate.dst;
         dist = scaled;
         edge = candidateId;
@@ -220,36 +236,37 @@ class Sim {
         }
         const src = agent.currentDest;
         const nextStep = this.getNextStep(src, agent.finalDest);
+        if (nextStep[0] != null) {
+          if (nextStep[1] == null) {
+            const id1 = this.getNextId();
+            const id2 = this.getNextId();
+            this.edges.set(id1, {
+                id: id1,
+                src: src,
+                dst: nextStep[0],
+                uses: 500,
+            });
+            this.edges.set(id2, {
+                id: id2,
+                src: nextStep[0],
+                dst: src,
+                uses: 500,
+            });
+            const srcNode = this.getNode(src);
+            const dstNode = this.getNode(nextStep[0]);
+            srcNode.edges.push(id1);
+            dstNode.edges.push(id2);
+            addedEdges.push(id1, id2);
+          } else {
+            const edge = this.getEdge(nextStep[1]);
+            console.log(`USING EDGE ${edge.id} with uses ${edge.uses}`)
+            edge.uses += 1;
+          }
 
-        if (nextStep[1] == null) {
-          const id1 = this.getNextId();
-          const id2 = this.getNextId();
-          this.edges.set(id1, {
-              id: id1,
-              src: src,
-              dst: nextStep[0],
-              uses: 500,
-          });
-          this.edges.set(id2, {
-              id: id2,
-              src: nextStep[0],
-              dst: src,
-              uses: 500,
-          });
-          const srcNode = this.getNode(src);
-          const dstNode = this.getNode(nextStep[0]);
-          srcNode.edges.push(id1);
-          dstNode.edges.push(id2);
-          addedEdges.push(id1, id2);
-        } else {
-          const edge = this.getEdge(nextStep[1]);
-          console.log(`USING EDGE ${edge.id} with uses ${edge.uses}`)
-          edge.uses += 1;
+          agent.currentDest = nextStep[0];
+          agent.currentEdge = nextStep[1];
+          console.log(`Agent "${id}", CURR: ${agent.currentDest}, FINAL: ${agent.finalDest}` );
         }
-
-        agent.currentDest = nextStep[0];
-        agent.currentEdge = nextStep[1];
-        console.log(`Agent "${id}", CURR: ${agent.currentDest}, FINAL: ${agent.finalDest}` );
       }
 
       agent.position = this.getNextPosition(agent);
