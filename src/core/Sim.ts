@@ -44,8 +44,8 @@ class Sim {
   MAX_NODES = 100;
   MAX_AGENTS = 50;
 
-  BASE_AGENT_SPEED = 0.001;
-  USE_SPEED_SCALE = 0.0005;
+  BASE_AGENT_SPEED = 0.002;
+  USE_SPEED_SCALE = 0.002;
 
   NODE_SPAWN_RATE = 25;
   AGENT_SPAWN_RATE = 50;
@@ -131,13 +131,17 @@ class Sim {
 
     let scaled = 0;
     if (usableEdge != null) {
-      scaled = distance / (this.BASE_AGENT_SPEED + this.USE_SPEED_SCALE * usableEdge.uses);
+      scaled = distance / this.getScaledSpeed(usableEdge.uses);
     } else {
       scaled = distance / this.BASE_AGENT_SPEED;
     }
 
     console.log(`SCALED: ${distance} => ${scaled}`)
     return scaled; 
+  }
+
+  getScaledSpeed(n: number) {
+    return this.BASE_AGENT_SPEED + Math.log(n + 1) * this.USE_SPEED_SCALE;
   }
 
   atDestination(agent: Agent) {
@@ -153,7 +157,7 @@ class Sim {
     let scale = 0;
     if (agent.currentEdge) {
       const edge = this.getEdge(agent.currentEdge);
-      scale = (this.BASE_AGENT_SPEED + this.USE_SPEED_SCALE * edge.uses) / dist
+      scale = this.getScaledSpeed(edge.uses) / dist
     } else {
       scale = this.BASE_AGENT_SPEED / dist;
     }
