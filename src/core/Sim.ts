@@ -1,6 +1,4 @@
 import * as _ from "lodash";
-import { UPDATE_PRIORITY } from "pixi.js";
-import { getEnabledCategories } from "trace_events";
 
 import { Settings } from './Settings';
 
@@ -152,8 +150,13 @@ class Sim {
     const dest = this.getNode(agent.currentDest).position;
     const dist = this.getDistance(curr, dest);
 
-    // TODO(tiernan): Consider edge scaling
-    const scale = this.BASE_AGENT_SPEED / dist;
+    let scale = 0;
+    if (agent.currentEdge) {
+      const edge = this.getEdge(agent.currentEdge);
+      scale = (this.BASE_AGENT_SPEED + this.USE_SPEED_SCALE * edge.uses) / dist
+    } else {
+      scale = this.BASE_AGENT_SPEED / dist;
+    }
 
     const dx = dest[0] - curr[0];
     const dy = dest[1] - curr[1];
