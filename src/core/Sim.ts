@@ -106,7 +106,7 @@ class Sim {
 
   getDistance(p1: Point, p2: Point) {
     const dx = Math.abs(p2[0] - p1[0]);
-    const dy = Math.abs(p2[0] - p1[0]);
+    const dy = Math.abs(p2[1] - p1[1]);
     return Math.sqrt(dx * dx + dy * dy);
   }
 
