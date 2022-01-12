@@ -238,14 +238,12 @@ class Sim {
   }
 
   tick(delta: number): SimUpdate {
-    console.log(`delta: ${delta}`);
-
     // TODO(tiernan): Check whether we should remove nodes ()
     // TODO(tiernan): Check whether we should remove edge (references null node)
 
     this.agents.forEach((agent, id) => {
       if (this.atDestination(agent)) {
-        console.log("JOB'S DONE!");
+        console.log(`Agent "${id}" reached node "${agent.finalDest}"`);
         if (agent.currentDest == agent.finalDest) {
           agent.finalDest = _.sample(Array.from(this.nodes.keys()))!;
         }

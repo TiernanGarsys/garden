@@ -126,7 +126,6 @@ function Display(props: DisplayProps) {
       });
     }
 
-    let elapsed = 0
     let initialTick = true;
     app.ticker.add((delta) => {
       let update: SimUpdate;
