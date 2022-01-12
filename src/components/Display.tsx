@@ -112,15 +112,7 @@ function Display(props: DisplayProps) {
     app.stage.addChild(debug);
 
     const redraw = () => {
-      debug.clear();
-      debug.lineStyle({ color: 0xffffff, width: 2, alignment: 0 });
-      debug.drawCircle(100, 100, 2);
-      debug.drawCircle(100, 200, 3);
-      debug.drawCircle(200, 300, 4);
-      debug.drawCircle(100, 300, 5);
-      debug.drawCircle(100, 400, 7);
-      debug.position.set(0, 0);
-
+      // TODO(tiernan): Detect resize gracefully
       const height = window.innerHeight;
       const width = window.innerWidth;
 
